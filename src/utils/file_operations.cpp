@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <filesystem>
 #include <iostream>
+#include <unistd.h>
 
 using namespace std;
 
@@ -19,7 +20,10 @@ bool decompress_gzip_file(string input, string output) {
     if(!data) return false;
     input_file.read(data, input_file_sz);
     input_file.close();
-    if(!gzip::is_compressed(data, input_file_sz)) return false;
+    if(!gzip::is_compressed(data, input_file_sz)) {
+        free(data);
+        return false;
+    }
     string decompressed = gzip::decompress(data, input_file_sz);
     ofstream output_file(output, ios::binary);
     output_file.write(decompressed.c_str(), decompressed.size());
@@ -57,7 +61,9 @@ bool decompress_tar_file(string input, string output) {
         size_t size;
         int64_t offset;
         while (archive_read_data_block(a, &buffer, &size, &offset) == ARCHIVE_OK) {
-            write(outputFd, buffer, size);
+            if (write(outputFd, buffer, size) == -1) {
+                break;
+            }
         }
         close(outputFd);
     }
