@@ -12,6 +12,7 @@ private:
 public:
     LiefExtractor(std::string bin_path, BIN_TYPE type);
     BIN_ARCH extract_arch() override;
+    bool has_interpreter();
     size_t extract_image_base();
     size_t resolve_pe_rva(size_t rva);
     LIEF::PE::Section* extract_text_section();

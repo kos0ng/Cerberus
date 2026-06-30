@@ -67,9 +67,11 @@ size_t BinaryHandler::libs_extraction() {
 size_t BinaryHandler::libs_installation() {
     unique_ptr<LibInstaller> installer;
     switch(lang) {
-        case RUST:
-            installer = make_unique<RustLibInstaller>(this->work_dir, this->arch, this->type);
+        case RUST: {
+            bool static_tgt = (this->type == BIN_TYPE::ELF) && !this->lief_extractor->has_interpreter();
+            installer = make_unique<RustLibInstaller>(this->work_dir, this->arch, this->type, this->bin_path, static_tgt);
             break;
+        }
         case GO:
             installer = make_unique<GoLibInstaller>(this->work_dir, this->arch, this->type);
             break;

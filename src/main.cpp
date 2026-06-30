@@ -18,6 +18,11 @@
 namespace fs = std::filesystem;
 using namespace std;
 
+extern bool COMPILE_TESTS;
+extern std::string PROFILE_TEMPLATE;
+extern bool ALL_FEATURES;
+extern std::string TARGET_TRIPLE;
+
 std::string work_dir;
 CONFIG* config;
 LANG selected_lang = LANG::UNKNOWN_LANG;
@@ -254,22 +259,14 @@ void start_analysis() {
     }
     fcout << "$(success)Analyzed $(success:b)" << to_string(funcs_sz) << "$ functions." << endl;
     fcout << "$(info)Matching with functions from libraries..." << endl;
-    string lib_extension;
-    switch(type) {
-        case BIN_TYPE::ELF:
-            lib_extension = ".so";
-            break;
-        case BIN_TYPE::PE:
-            lib_extension = ".dll";
-            break;
-    }
     for(const auto& entry : fs::directory_iterator(work_dir)) {
         if (fs::is_regular_file(entry)) {
-            fs::path file_path = entry.path();
-            if(ends_with(file_path.filename(), lib_extension)) {
-                handler->functions_matching(file_path.string());
-            }
+            handler->functions_matching(entry.path().string());
         }
+    }
+    if(!config->reference_path.empty()) {
+        fcout << "$(info)Matching with reference binary $(info:b)" << config->reference_path << "$..." << endl;
+        handler->functions_matching(config->reference_path);
     }
     handler->post_matching();
     size_t matches_sz = handler->get_matches_sz();
@@ -302,6 +299,10 @@ int main(int argc, char *argv[]) {
     config = parser.compute_args(argc, argv);
     COMMANDS_DEBUG_MODE = config->debug;
     NO_PROMPT = config->no_prompt;
+    COMPILE_TESTS = config->compile_tests;
+    PROFILE_TEMPLATE = config->profile_template;
+    ALL_FEATURES = config->all_features;
+    TARGET_TRIPLE = config->target_triple;
     if(config) {
         fcout << "$(bright_red:b)---------- $(red:b)" << TOOL_NAME << " (v" << TOOL_VERSION << ")$ ----------" << endl;
         usr_config = identify_local_config();

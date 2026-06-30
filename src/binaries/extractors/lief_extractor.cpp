@@ -27,6 +27,13 @@ BIN_ARCH LiefExtractor::extract_arch() {
     return BIN_ARCH::UNKNOWN_ARCH;
 }
 
+bool LiefExtractor::has_interpreter() {
+    // An ELF without a PT_INTERP is statically linked (typical of musl targets).
+    // For PE (always uses a loader) or unparsed binaries, report as not-static.
+    if(type == BIN_TYPE::ELF && this->elf_bin) return this->elf_bin->has_interpreter();
+    return true;
+}
+
 size_t LiefExtractor::extract_image_base() {
     return this->bin->imagebase();
 }

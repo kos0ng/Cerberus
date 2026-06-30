@@ -1,0 +1,11 @@
+[profile.release]
+lto = true
+strip = true
+opt-level = "z"
+panic = "abort"
+
+[profile.dev]
+lto = true
+strip = true
+opt-level = "z"
+panic = "abort"
